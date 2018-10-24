@@ -61,6 +61,20 @@ cons_trif x y z
 
 -- Funcion que recibe un laberinto y retorna el laberinto que comienza al voltear
 -- a la izquierda
+-- Parametros: x un Laberinto
+-- Salida: El laberinto al voltear a la izquierda
 acc_izq :: Laberinto -> Maybe Laberinto
 acc_izq x =  izquierda $ trif x
 
+-- Funcion que recibe un laberinto y retorna el laberinto que comienza al voltear
+-- a la derecha
+-- Parametros: x un Laberinto
+-- Salida: El laberinto al voltear a la derecha
+acc_der :: Laberinto -> Maybe Laberinto
+acc_der x =  derecha $ trif x
+
+-- Funcion que recibe un laberinto y retorna el laberinto que comienza al seguir recto
+-- Parametros: x un Laberinto
+-- Salida: El laberinto al seguir recto
+acc_rec :: Laberinto -> Maybe Laberinto
+acc_rec x =  recto $ trif x
