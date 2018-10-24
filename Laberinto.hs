@@ -1,7 +1,8 @@
 module Laberinto where
 import Data.Map as M
 
-data Laberinto = Laberinto Trifurcacion Tesoro deriving (Show, Read)
+data Laberinto = Laberinto {Trifurcacion :: Trifurcacion, 
+                            Maybe Tesoro :: Tesoro } deriving (Show, Read)
 
 data Trifurcacion = Trifurcacion {  derecha :: Maybe Laberinto,
                                     izquierda :: Maybe Laberinto,
