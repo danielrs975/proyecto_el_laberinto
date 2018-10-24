@@ -5,6 +5,8 @@
 
 module Laberinto where
 import Data.Map as M
+import Data.List.Split
+import Data.Maybe
 
 -- Tipo de datos que almacena conocimientos del sabio sobre el laberinto
 -- Atributos: Trifurcacion y Tesoro
@@ -78,3 +80,18 @@ acc_der x =  derecha $ trif x
 -- Salida: El laberinto al seguir recto
 acc_rec :: Laberinto -> Maybe Laberinto
 acc_rec x =  recto $ trif x
+
+get_ruta :: String -> [String]
+get_ruta x = splitOn " " x
+
+get_lab_head :: Maybe Laberinto -> [String] -> Maybe Laberinto
+get_lab_head x (y:ys) 
+    | isNothing x = error "No se encuentra laberinto inicial"
+    | y == "derecha" = get_lab_head (derecha $ trif x) ys
+    | y == "izquierda" = get_lab_head (izquierda $ trif x) ys
+    | y == "recto" = get_lab_head (recto $ trif x) ys
+
+acc_ruta :: Maybe Laberinto -> String -> Maybe Laberinto
+acc_ruta x y 
+    | isNothing x = error "No se encuentra laberinto inicial"
+    | otherwise = get_lab_head x $ get_ruta y
