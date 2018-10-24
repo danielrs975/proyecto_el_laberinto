@@ -72,31 +72,38 @@ cons_trif x y z
 
 -- Idea transformar lo que devuelve acceder en las direcciones a solo laberinto 
 -- si encuentra pared devolver mensaje que diga encontro una pared
-acc_izq :: Laberinto -> Maybe Laberinto
-acc_izq x = izquierda $ trif x
+acc_izq :: Laberinto -> Laberinto
+acc_izq x = case y of Nothing -> error "Se encontro una pared"
+                      Just y -> y 
+            where y = izquierda $ trif x
 
 -- Funcion que recibe un laberinto y retorna el laberinto que comienza al voltear
 -- a la derecha
 -- Parametros: x un Laberinto
 -- Salida: El laberinto al voltear a la derecha
-acc_der :: Laberinto -> Maybe Laberinto
-acc_der x =  derecha $ trif x
+acc_der :: Laberinto -> Laberinto
+acc_der x =  case y of Nothing -> error "Se encontro una pared"
+                       Just y -> y 
+             where y = derecha $ trif x
+
 
 -- Funcion que recibe un laberinto y retorna el laberinto que comienza al seguir recto
 -- Parametros: x un Laberinto
 -- Salida: El laberinto al seguir recto
-acc_rec :: Laberinto -> Maybe Laberinto
-acc_rec x =  recto $ trif x
+acc_rec :: Laberinto -> Laberinto
+acc_rec x =  case y of Nothing -> error "Se encontro una pared"
+                       Just y -> y
+             where y = recto $ trif x
 
 get_ruta :: String -> [String]
 get_ruta x = splitOn " " x
 
--- get_lab_head :: Laberinto -> [String] -> Maybe Laberinto
+-- get_lab_head :: Laberinto -> [String] -> Laberinto
 -- get_lab_head x [] = x
--- get_lab_head x (y:ys) 
---     | y == "derecha" = get_lab_head (acc_der x) ys
---     | y == "izquierda" = get_lab_head (acc_izq x) ys
---     | y == "recto" = get_lab_head (acc_rec x) ys
-
--- acc_ruta :: Laberinto -> String -> Maybe Laberinto
+-- get_lab_head x (y:ys)
+    -- | y == "derecha" = get_lab_head (acc_der x) ys
+    -- | y == "izquierda" = get_lab_head (acc_izq x) ys
+    -- | y == "recto" = get_lab_head (acc_rec x) ys
+-- 
+-- acc_ruta :: Laberinto -> String -> Laberinto
 -- acc_ruta x y = get_lab_head x $ get_ruta y
