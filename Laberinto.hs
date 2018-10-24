@@ -1,7 +1,7 @@
 -- Proyecto 1 Septiembre – Diciembre 2018 El sabio del laberinto
 -- Autores:
 -- Yuni Quintero
--- Daniel Rodriguez
+-- Daniel Rodriguez 14-10955
 
 module Laberinto where
 import Data.Map as M
@@ -11,7 +11,11 @@ import Data.Maybe
 -- Tipo de datos que almacena conocimientos del sabio sobre el laberinto
 -- Atributos: Trifurcacion y Tesoro
 data Laberinto = Laberinto  {trif :: Trifurcacion,
-                             tesoro :: Maybe Tesoro} deriving (Show)
+                             tesoro :: Maybe Tesoro}
+
+-- Instancia de show para el tipo de dato Laberinto 
+instance Show Laberinto where
+    show Laberinto {trif=x, tesoro=y} = "El laberinto es el siguiente: " ++ show x
 
 -- Tipo de datos que almacena conocimientos del sabio sobre una trifurcacion
 -- del laberinto
@@ -29,7 +33,7 @@ data Trifurcacion = Trifurcacion {  derecha :: Maybe Laberinto,
 -- ignorar: un Maybe Laberinto que indica que encontraran si se pasa por alto
 -- al tesoro                                    
 data Tesoro = Tesoro {  descripcion :: String,
-                        ignorar :: Maybe Laberinto} deriving (Show)
+                        ignorar :: Maybe Laberinto}
 
 -- Funciones de Construccion
 
@@ -65,8 +69,11 @@ cons_trif x y z
 -- a la izquierda
 -- Parametros: x un Laberinto
 -- Salida: El laberinto al voltear a la izquierda
+
+-- Idea transformar lo que devuelve acceder en las direcciones a solo laberinto 
+-- si encuentra pared devolver mensaje que diga encontro una pared
 acc_izq :: Laberinto -> Maybe Laberinto
-acc_izq x =  izquierda $ trif x
+acc_izq x = izquierda $ trif x
 
 -- Funcion que recibe un laberinto y retorna el laberinto que comienza al voltear
 -- a la derecha
@@ -84,14 +91,12 @@ acc_rec x =  recto $ trif x
 get_ruta :: String -> [String]
 get_ruta x = splitOn " " x
 
-get_lab_head :: Maybe Laberinto -> [String] -> Maybe Laberinto
-get_lab_head x (y:ys) 
-    | isNothing x = error "No se encuentra laberinto inicial"
-    | y == "derecha" = get_lab_head (derecha $ trif x) ys
-    | y == "izquierda" = get_lab_head (izquierda $ trif x) ys
-    | y == "recto" = get_lab_head (recto $ trif x) ys
+-- get_lab_head :: Laberinto -> [String] -> Maybe Laberinto
+-- get_lab_head x [] = x
+-- get_lab_head x (y:ys) 
+--     | y == "derecha" = get_lab_head (acc_der x) ys
+--     | y == "izquierda" = get_lab_head (acc_izq x) ys
+--     | y == "recto" = get_lab_head (acc_rec x) ys
 
-acc_ruta :: Maybe Laberinto -> String -> Maybe Laberinto
-acc_ruta x y 
-    | isNothing x = error "No se encuentra laberinto inicial"
-    | otherwise = get_lab_head x $ get_ruta y
+-- acc_ruta :: Laberinto -> String -> Maybe Laberinto
+-- acc_ruta x y = get_lab_head x $ get_ruta y
