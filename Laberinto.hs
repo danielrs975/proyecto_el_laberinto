@@ -8,14 +8,22 @@ import Data.Map as M
 import Data.List.Split
 import Data.Maybe
 
+
+
 -- Tipo de datos que almacena conocimientos del sabio sobre el laberinto
 -- Atributos: Trifurcacion y Tesoro
-data Laberinto = Laberinto  {trif :: Trifurcacion,
-                             tesoro :: Maybe Tesoro}
-
+data Laberinto = Either Trifurcacion Tesoro deriving (Show)
 -- Instancia de show para el tipo de dato Laberinto 
-instance Show Laberinto where
-    show Laberinto {trif=x, tesoro=y} = "El laberinto es el siguiente: " ++ show x
+-- instance Show Laberinto where
+    -- show Laberinto {trif=x, tesoro=y} = "El laberinto es el siguiente: " ++ show x
+
+-- Tipo de datos que almacena conocimientos del sabio sobre un tesoro
+-- Atributos:
+-- descripcion: un String con la descripcion del tesoro
+-- ignorar: un Maybe Laberinto que indica que encontraran si se pasa por alto
+-- al tesoro                                    
+data Tesoro = Tesoro {  descripcion :: String,
+                        ignorar :: Maybe Laberinto} deriving (Show)
 
 -- Tipo de datos que almacena conocimientos del sabio sobre una trifurcacion
 -- del laberinto
@@ -26,14 +34,6 @@ instance Show Laberinto where
 data Trifurcacion = Trifurcacion {  derecha :: Maybe Laberinto,
                                     izquierda :: Maybe Laberinto,
                                     recto :: Maybe Laberinto} deriving (Show)
-
--- Tipo de datos que almacena conocimientos del sabio sobre un tesoro
--- Atributos:
--- descripcion: un String con la descripcion del tesoro
--- ignorar: un Maybe Laberinto que indica que encontraran si se pasa por alto
--- al tesoro                                    
-data Tesoro = Tesoro {  descripcion :: String,
-                        ignorar :: Maybe Laberinto}
 
 -- Funciones de Construccion
 
@@ -49,7 +49,7 @@ sin_salida = Trifurcacion{derecha=Nothing, izquierda=Nothing, recto=Nothing}
 -- que indica el laberinto a encontrar si se ignora el tesoro
 -- Salida: objeto Tesoro
 desc_tesoro :: String -> Laberinto -> Tesoro
-desc_tesoro x y = Tesoro{descripcion=x, ignorar=Just y}
+desc_tesoro x y = Tesoro {descripcion=x, ignorar=Just y}
 
 
 -- Funcion que recibe una Trifurcacion, un laberitno y un indicador de cual camino
@@ -75,16 +75,16 @@ cons_trif x y z
 acc_izq :: Laberinto -> Laberinto
 acc_izq x = case y of Nothing -> error "Se encontro una pared"
                       Just y -> y 
-            where y = izquierda $ trif x
+            where y = izquierda $ Left x
 
 -- Funcion que recibe un laberinto y retorna el laberinto que comienza al voltear
 -- a la derecha
 -- Parametros: x un Laberinto
 -- Salida: El laberinto al voltear a la derecha
 acc_der :: Laberinto -> Laberinto
-acc_der x =  case y of Nothing -> error "Se encontro una pared"
+acc_der x  =  case y of Nothing -> error "Se encontro una pared"
                        Just y -> y 
-             where y = derecha $ trif x
+             where y = derecha $ Left x
 
 
 -- Funcion que recibe un laberinto y retorna el laberinto que comienza al seguir recto
@@ -93,17 +93,17 @@ acc_der x =  case y of Nothing -> error "Se encontro una pared"
 acc_rec :: Laberinto -> Laberinto
 acc_rec x =  case y of Nothing -> error "Se encontro una pared"
                        Just y -> y
-             where y = recto $ trif x
+             where y = recto $ Left x
 
 get_ruta :: String -> [String]
 get_ruta x = splitOn " " x
 
--- get_lab_head :: Laberinto -> [String] -> Laberinto
--- get_lab_head x [] = x
--- get_lab_head x (y:ys)
-    -- | y == "derecha" = get_lab_head (acc_der x) ys
-    -- | y == "izquierda" = get_lab_head (acc_izq x) ys
-    -- | y == "recto" = get_lab_head (acc_rec x) ys
--- 
--- acc_ruta :: Laberinto -> String -> Laberinto
--- acc_ruta x y = get_lab_head x $ get_ruta y
+get_lab_head :: Laberinto -> [String] -> Laberinto
+get_lab_head x [] = x
+get_lab_head x (y:ys)
+    | y == "derecha" = get_lab_head (acc_der x) ys
+    | y == "izquierda" = get_lab_head (acc_izq x) ys
+    | y == "recto" = get_lab_head (acc_rec x) ys
+
+acc_ruta :: Laberinto -> String -> Laberinto
+acc_ruta x y = get_lab_head x $ get_ruta y
