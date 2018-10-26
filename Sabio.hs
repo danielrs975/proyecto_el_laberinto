@@ -43,7 +43,7 @@ validar s listaOpciones = esValido (reads s)
 -- | Funcion que separa un string por sus espacios y devuelve una lista con cada palabra
 
 get_ruta :: String -> [String]
-get_ruta x = reverse (splitOn " " x)
+get_ruta x = splitOn " " x
 
 -- | Funcion que genera un nuevo laberinto en memoria, Opcion 1
 
@@ -51,12 +51,20 @@ labNuevo :: Laberinto -> Laberinto -> [String] -> Laberinto
 labNuevo _ y [] = y
 labNuevo x y (z:zs) = labNuevo sin_salida (conexion x y z) zs
 
--- | Funcion que ejecuta la primera opcion "Comenzr a hablar de un laberinto nuevo"
-execLabNuevo :: IO()
+-- | Funcion que ejecuta la primera opcion "Comenzar a hablar de un laberinto nuevo"
+execLabNuevo :: IO Laberinto
 execLabNuevo = do 
     rutaUsuario <- getLine
-    let listaRuta = get_ruta rutaUsuario 
-    putStrLn $ show (labNuevo sin_salida sin_salida listaRuta)
+    let listaRuta = reverse $ get_ruta rutaUsuario 
+    return (labNuevo sin_salida sin_salida listaRuta)
+
+-- | Funcion que le pide al usuario una ruta y empieza recorrer hasta terminar con un camino sin salida 
+-- | o un tesoro 
+execPregRuta :: Laberinto -> IO Laberinto
+execPregRuta x = do 
+    rutaUsuario <- getLine
+    let listaRuta = get_ruta rutaUsuario
+    return (recorrer x listaRuta)
 
 
 -- menu :: Maybe Laberinto -> IO()
@@ -65,13 +73,13 @@ menu (Just laberintoActual) = do
     opcion <- getLine
     laberintoNuevo <- case validar opcion opcionesPrincipales of
         Just 1 -> execLabNuevo        
-        Just 2 -> putStrLn "pregRuta"
-        Just 3 -> putStrLn "paredAbierta"
-        Just 4 -> putStrLn "derrumbe"
-        Just 5 -> putStrLn "tesoroTomado"
-        Just 6 -> putStrLn "tesoroHallado"
-        Just 7 -> putStrLn "nameLab"
-        Just 8 -> putStrLn "hablarLab"
+        Just 2 -> execPregRuta laberintoActual
+        -- Just 3 -> putStrLn "paredAbierta"
+        -- Just 4 -> putStrLn "derrumbe"
+        -- Just 5 -> putStrLn "tesoroTomado"
+        -- Just 6 -> putStrLn "tesoroHallado"
+        -- Just 7 -> putStrLn "nameLab"
+        -- Just 8 -> putStrLn "hablarLab"
         Nothing -> do
             putStrLn ""
             putStrLn "Opción incorrecta."
@@ -83,7 +91,9 @@ menu Nothing = do
     putStrLn $ mostrarOpciones opcionesIniciales
     opcion <- getLine
     case validar opcion opcionesIniciales of 
-        Just 1 -> execLabNuevo
+        Just 1 -> do
+            temp <- execLabNuevo
+            menu (Just temp)
         Just 2 -> putStrLn "hablarLab"
         Nothing -> do
             putStrLn ""
