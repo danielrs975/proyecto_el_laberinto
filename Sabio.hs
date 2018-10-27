@@ -66,6 +66,12 @@ execPregRuta x = do
     let listaRuta = get_ruta rutaUsuario
     return (recorrer x listaRuta)
 
+-- | Funcion que crea una Trifurcacion nueva a partir de otra, colocando valor Nothing segun el indicador
+addNothing :: Laberinto -> String -> Laberinto
+addNothing x y
+    |   y=="izquierda" = Trifurcacion (Nothing) (acc_der x) (acc_rec x)
+    |   y=="derecha" = Trifurcacion (acc_izq x) (Nothing) (acc_rec x)
+    |   y=="recto" = Trifurcacion (acc_izq x) (acc_der x) (Nothing)
 
 -- menu :: Maybe Laberinto -> IO()
 menu (Just laberintoActual) = do 
