@@ -16,7 +16,8 @@ import Data.Maybe
 -- |                        a hacer los laberintos alcanzables desde el que se esta 
 -- |                        parado a traves de tres direcciones: Izquierda, Derecha
 -- |                        y Recto
-data Laberinto = Tesoro String (Maybe Laberinto) | Trifurcacion (Maybe Laberinto) (Maybe Laberinto) (Maybe Laberinto) deriving (Show, Read)
+data Laberinto = Tesoro String (Maybe Laberinto) | Trifurcacion (Maybe Laberinto) (Maybe Laberinto) (Maybe Laberinto) deriving (Show, Read, Eq)
+
 
 -- | ------------------------------------ Funciones de construccion ----------------------------
 
@@ -85,7 +86,7 @@ conexion x y z
 -- |        Salida:  a, es el tipo que en realidad es 
 -- |        Descripcion: Solo es una funcion auxiliar para llevar los tipos Maybe Laberinto a Laberinto
 convert :: Maybe a -> a
-convert x = case x of Nothing -> error "Se encontro una pared"
+convert x = case x of Nothing -> error "Se encontro una pared."
                       Just x -> x
 
 -- | recorrer:
