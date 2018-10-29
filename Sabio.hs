@@ -94,17 +94,16 @@ execContRuta x y = do
         otherwise -> submenu laberintoAlcanzado y
     
 -- | Funcion que obtiene la ruta hasta la primera pared que encuentra 
-obtenerRutaPared :: Maybe Laberinto -> [String] -> [String]
-obtenerRutaPared Nothing y = y
-obtenerRutaPared x [] = []
-obtenerRutaPared x (y:ys)
-    |   y=="izquierda"  = obtenerRutaPared (acc_izq $ convert x) ys
-    |   y=="derecha"  = obtenerRutaPared (acc_der $ convert x) ys
-    |   y=="recto"  = obtenerRutaPared (acc_rec $ convert x) ys
+obtenerRutaPared :: Maybe Laberinto -> [String] -> String -> [String]
+obtenerRutaPared Nothing y z = [z] ++ y 
+obtenerRutaPared x (y:ys) z
+    |   y=="izquierda"  = obtenerRutaPared (acc_izq $ convert x) ys y
+    |   y=="derecha"  = obtenerRutaPared (acc_der $ convert x) ys y
+    |   y=="recto"  = obtenerRutaPared (acc_rec $ convert x) ys y
 
 -- | Funcion que obtiene la lista de los laberintos que estan antes de encontrar una pared
-laberintosRuta :: Laberinto -> [String] -> [Laberinto]
-laberintosRuta x [] = [x]
+laberintosRuta :: Laberinto ->  [String] -> [Laberinto]
+laberintosRuta x [] = []
 laberintosRuta x (y:ys)
     |   y=="izquierda"  = [convert $ acc_izq x] ++ laberintosRuta (convert $ acc_izq x) ys 
     |   y=="derecha"  = [convert $ acc_der x] ++ laberintosRuta (convert $ acc_der x) ys 
@@ -112,27 +111,35 @@ laberintosRuta x (y:ys)
 
 -- | Funcion que reconstruye el laberinto a partir de una lista de los laberintos recorridos
 reconsLab :: [Laberinto] -> Laberinto -> [String] -> Laberinto
-reconsLab [x] z [] = z
+reconsLab [] z [] = z
 reconsLab (x:xs) z (w:ws) = reconsLab xs (conexion x z w) ws
 
 -- | Funcion que se encarga de ejecutar la opcion reportar pared abierta 
 
-execParedAbierta :: Laberinto -> IO Laberinto 
+execParedAbierta :: Laberinto -> IO Laberinto
 execParedAbierta x = do 
-    putStrLn "Introduza la ruta: "
+    putStrLn "Introduzca la ruta: "
     caminoUsuario <- getLine
+    -- Estos dos comandos obtienen la ruta que falta para completar el camino 
     let listaRuta = get_ruta caminoUsuario
-    let rutaRestante = obtenerRutaPared (Just x) listaRuta
-    let longitudRutaRecorrida = length listaRuta - length rutaRestante
-    let rutaRecorrida = take longitudRutaRecorrida listaRuta
-    let laberintosRecorridos = laberintosRuta x rutaRecorrida
-    putStrLn $ show rutaRestante
+    let rutaRestante = obtenerRutaPared (Just x) listaRuta (head listaRuta)
+    -- Aqui se obtiene el conector entre el sublaberinto y el laberinto principal
+    let conector = head rutaRestante
+    let rutaRestante2 = drop 1 rutaRestante
+    -- Aqui se obtiene la ruta recorrida hasta que se encuentra la pared
+    let rutaRecorrida = take (length listaRuta - length rutaRestante) listaRuta
+    -- Estos son los laberintos que recorri hasta llegar a una pared 
+    let laberintosRecorridos = [x]++(laberintosRuta x rutaRecorrida)
     putStrLn $ show laberintosRecorridos
+    -- Obtenemos el laberinto en el cual vamos a empezar a recorrer la nueva ruta 
     let laberintoActual = recorrer x rutaRecorrida
-    let subLaberinto = labNuevo sin_salida sin_salida (reverse rutaRestante)
-    let nuevoLaberinto = reconsLab (reverse laberintosRecorridos) subLaberinto (reverse rutaRecorrida)
-    putStrLn $ show nuevoLaberinto
-    return nuevoLaberinto
+    -- Obtenemos el sublaberinto para tal ruta 
+    let sublaberinto = if length rutaRestante2 > 0 then labNuevo sin_salida sin_salida (reverse rutaRestante2) else sin_salida
+    let sublaberinto2 = conexion (last laberintosRecorridos) sublaberinto conector
+    -- Aqui conectamos el sublaberinto con el laberinto principal 
+    let laberintoNuevo = reconsLab (drop 1 $ reverse laberintosRecorridos) sublaberinto2 (reverse (rutaRecorrida))
+    putStrLn $ show laberintoNuevo
+    return laberintoNuevo
 
 -- | Esta funcion se encarga de eliminar el sublaberinto que existe 
 -- | en la direccion indicada 
@@ -147,11 +154,13 @@ eliminarSubLaberinto x y
 
 execDerrumbe :: Laberinto -> IO Laberinto
 execDerrumbe x = do 
+    -- Obtenemos las entradas dadas por el usuario 
     putStrLn "Introduza la ruta: "
     rutaUsuario <- getLine
     let listaRuta = get_ruta rutaUsuario
     putStrLn "Introduzca una direccion: "
     direccion <- getLine 
+    -- Obtenemos el laberinto al cual se puede llegar por el camino provisto por el usuario
     let laberintoActual = recorrer x listaRuta
     let sublaberinto = eliminarSubLaberinto laberintoActual direccion
     return sublaberinto 
@@ -161,7 +170,7 @@ execDerrumbe x = do
 
 
 -- menu :: Maybe Laberinto -> IO()
-menu (Just laberintoActual) = do 
+menu (Just laberintoActual) = do
     putStrLn $ mostrarOpciones opcionesPrincipales
     opcion <- getLine
     laberintoNuevo <- case validar opcion opcionesPrincipales of
