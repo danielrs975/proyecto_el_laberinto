@@ -101,8 +101,9 @@ obtenerRutaPared x (y:ys) z
     |   y=="derecha"  = obtenerRutaPared (acc_der $ convert x) ys y
     |   y=="recto"  = obtenerRutaPared (acc_rec $ convert x) ys y
 
+
 -- | Funcion que obtiene la lista de los laberintos que estan antes de encontrar una pared
-laberintosRuta :: Laberinto ->  [String] -> [Laberinto]
+laberintosRuta :: Laberinto -> [String] -> [Laberinto]
 laberintosRuta x [] = []
 laberintosRuta x (y:ys)
     |   y=="izquierda"  = [convert $ acc_izq x] ++ laberintosRuta (convert $ acc_izq x) ys 
@@ -116,11 +117,10 @@ reconsLab (x:xs) z (w:ws) = reconsLab xs (conexion x z w) ws
 
 -- | Funcion que se encarga de ejecutar la opcion reportar pared abierta 
 
-execParedAbierta :: Laberinto -> IO Laberinto
+execParedAbierta :: Laberinto -> IO Laberinto 
 execParedAbierta x = do 
-    putStrLn "Introduzca la ruta: "
+    putStrLn "Introduza la ruta: "
     caminoUsuario <- getLine
-    -- Estos dos comandos obtienen la ruta que falta para completar el camino 
     let listaRuta = get_ruta caminoUsuario
     let rutaRestante = obtenerRutaPared (Just x) listaRuta (head listaRuta)
     -- Aqui se obtiene el conector entre el sublaberinto y el laberinto principal
@@ -152,7 +152,6 @@ eliminarSubLaberinto x y
 
 execDerrumbe :: Laberinto -> IO Laberinto
 execDerrumbe x = do 
-    -- Obtenemos las entradas dadas por el usuario 
     putStrLn "Introduza la ruta: "
     rutaUsuario <- getLine
     let listaRuta = get_ruta rutaUsuario
@@ -168,15 +167,65 @@ execDerrumbe x = do
     return laberintoNuevo
 
 
--- | Funcion que ejecuta la opcion de reportar tesoro hallado
-execTesoroHallado :: Laberinto -> IO Laberinto 
-execTesoroHallado x = do
-    
+-- | Funcion que convierte un Tesoro en una Trifurcacion
+tesToTri :: Laberinto -> Laberinto
+tesToTri (Tesoro _ x) = convert x
 
+-- | Funcion que convierte una Trifurcacion en un Tesoro
+triToTes :: Laberinto -> Laberinto
+triToTes x = Tesoro "Descripcion" (Just x)
 
+-- | Funcion que recibe un laberinto y verifica si es un tesoro
+checkTes :: Laberinto -> Bool
+checkTes (Tesoro _ _) = True
+checkTes (Trifurcacion _ _ _) = False
+
+-- | Funcion que se encarga de ejecutar la opcion de reportar tesoro hallado
+execHallado :: Laberinto -> IO Laberinto
+execHallado x = do
+    -- Obtenemos las entradas dadas por el usuario
+    putStrLn "Introduza la ruta: "
+    rutaUsuario <- getLine
+    let listaRuta = get_ruta rutaUsuario
+    -- Obtenemos el laberinto al cual se puede llegar por el camino provisto por el usuario
+    -- Para ello obtenemos los laberintos que he recorrido hasta llegar al final de la ruta 
+    let laberintosRecorridos = [x]++(laberintosRuta x listaRuta)
+    -- Obtenemos el laberinto donde vamos a poner el tesoro 
+    let laberintoActual = last laberintosRecorridos
+    -- construimos el tesoro 
+    let tesoro = triToTes laberintoActual
+    -- Reconstruimos el arbol 
+    let laberintoNuevo = reconsLab (drop 1 $ reverse laberintosRecorridos) tesoro (reverse listaRuta)
+    putStrLn $ show laberintoNuevo
+    return laberintoNuevo
+
+-- | Funcion que se encarga de ejecutar la opcion de reportar tesoro tomado
+execTomado :: Laberinto -> IO Laberinto
+execTomado x = do
+    -- Obtenemos las entradas dadas por el usuario
+    putStrLn "Introduza la ruta: "
+    rutaUsuario <- getLine
+    let listaRuta = get_ruta rutaUsuario
+    -- Obtenemos el laberinto al cual se puede llegar por el camino provisto por el usuario
+    -- Para ello obtenemos los laberintos que he recorrido hasta llegar al final de la ruta 
+    let laberintosRecorridos = [x]++(laberintosRuta x listaRuta)
+    -- Obtenemos el laberinto donde se encuentra el tesoro
+    let laberintoActual = last laberintosRecorridos
+    -- Verificamos si el final de la ruta era un tesoro
+    case checkTes laberintoActual of
+        True -> do
+            -- construimos la trifurcacion
+            let trif = tesToTri laberintoActual
+            -- Reconstruimos el arbol 
+            let laberintoNuevo = reconsLab (drop 1 $ reverse laberintosRecorridos) trif (reverse listaRuta)
+            putStrLn $ show laberintoNuevo
+            return laberintoNuevo
+        otherwise -> do
+            putStrLn "No se encontro tesoro"
+            return x
 
 -- menu :: Maybe Laberinto -> IO()
-menu (Just laberintoActual) = do
+menu (Just laberintoActual) = do 
     putStrLn $ mostrarOpciones opcionesPrincipales
     opcion <- getLine
     laberintoNuevo <- case validar opcion opcionesPrincipales of
@@ -184,8 +233,8 @@ menu (Just laberintoActual) = do
         Just 2 -> execPregRuta laberintoActual
         Just 3 -> execParedAbierta laberintoActual
         Just 4 -> execDerrumbe laberintoActual
-        -- Just 5 -> putStrLn "tesoroTomado"
-        Just 6 -> execTesoroHallado laberintoActual
+        Just 5 -> execTomado laberintoActual
+        Just 6 -> execHallado laberintoActual
         -- Just 7 -> putStrLn "nameLab"
         -- Just 8 -> putStrLn "hablarLab"
         Nothing -> do
