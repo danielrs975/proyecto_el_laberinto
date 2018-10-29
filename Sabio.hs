@@ -6,6 +6,7 @@ module Sabio(main) where
 import System.IO 
 import Laberinto
 import Data.List.Split
+import Data.Char
 
 
 -- | Es una lista que mantiene todas las opciones disponibles 
@@ -192,12 +193,18 @@ execHallado x = do
     let laberintosRecorridos = [x]++(laberintosRuta x listaRuta)
     -- Obtenemos el laberinto donde vamos a poner el tesoro 
     let laberintoActual = last laberintosRecorridos
-    -- construimos el tesoro 
-    let tesoro = triToTes laberintoActual
-    -- Reconstruimos el arbol 
-    let laberintoNuevo = reconsLab (drop 1 $ reverse laberintosRecorridos) tesoro (reverse listaRuta)
-    putStrLn $ show laberintoNuevo
-    return laberintoNuevo
+    -- Verificamos que no hay tesoro en donde estamos parados 
+    case checkTes laberintoActual of 
+        True ->  do 
+            putStrLn "Ya existe un tesoro aqui."
+            return x 
+        otherwise -> do
+            -- construimos el tesoro 
+            let tesoro = triToTes laberintoActual
+            -- Reconstruimos el arbol
+            let laberintoNuevo = reconsLab (drop 1 $ reverse laberintosRecorridos) tesoro (reverse listaRuta)
+            putStrLn $ show laberintoNuevo
+            return laberintoNuevo
 
 -- | Funcion que se encarga de ejecutar la opcion de reportar tesoro tomado
 execTomado :: Laberinto -> IO Laberinto
@@ -224,6 +231,23 @@ execTomado x = do
             putStrLn "No se encontro tesoro"
             return x
 
+-- | Funcion que guarda el laberinto en un archivo de texto 
+execNameLab :: Laberinto -> IO Laberinto
+execNameLab x = do 
+    putStrLn "Introduzca el nombre de un archivo: "
+    nombreArchivo <- getLine 
+    writeFile nombreArchivo (show x)
+    return x
+
+-- | Funcion que se encarga de la lectura de un archivo 
+execHablarLab :: IO Laberinto
+execHablarLab = do 
+    putStrLn "Introduzca el nombre del archivo que quiere leer: "
+    nombreArchivo <- getLine 
+    laberintoRead <- readFile nombreArchivo
+    let laberintoNuevo = read laberintoRead :: Laberinto 
+    return laberintoNuevo
+
 -- menu :: Maybe Laberinto -> IO()
 menu (Just laberintoActual) = do 
     putStrLn $ mostrarOpciones opcionesPrincipales
@@ -235,8 +259,8 @@ menu (Just laberintoActual) = do
         Just 4 -> execDerrumbe laberintoActual
         Just 5 -> execTomado laberintoActual
         Just 6 -> execHallado laberintoActual
-        -- Just 7 -> putStrLn "nameLab"
-        -- Just 8 -> putStrLn "hablarLab"
+        Just 7 -> execNameLab laberintoActual
+        Just 8 -> execHablarLab
         Nothing -> do
             putStrLn ""
             putStrLn "Opción incorrecta."
@@ -251,7 +275,9 @@ menu Nothing = do
         Just 1 -> do
             temp <- execLabNuevo
             menu (Just temp)
-        -- Just 2 -> putStrLn "hablarLab"
+        Just 2 -> do
+            laberintoNuevo <- execHablarLab
+            menu (Just laberintoNuevo)
         Nothing -> do
             putStrLn ""
             putStrLn "Opción incorrecta."
