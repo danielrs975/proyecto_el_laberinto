@@ -54,6 +54,7 @@ labNuevo x y (z:zs) = labNuevo sin_salida (conexion x y z) zs
 -- | Funcion que ejecuta la primera opcion "Comenzar a hablar de un laberinto nuevo"
 execLabNuevo :: IO Laberinto
 execLabNuevo = do 
+    putStrLn "Introduza la ruta: "
     rutaUsuario <- getLine
     let listaRuta = reverse $ get_ruta rutaUsuario 
     return (labNuevo sin_salida sin_salida listaRuta)
@@ -69,6 +70,7 @@ checkLab x
 -- | o un tesoro 
 execPregRuta :: Laberinto -> IO Laberinto
 execPregRuta x = do 
+    putStrLn "Introduza la ruta: "
     rutaUsuario <- getLine
     let listaRuta = get_ruta rutaUsuario
     let laberintoAlcanzado = recorrer x listaRuta
@@ -81,6 +83,7 @@ execPregRuta x = do
 -- | Funcion continuar ruta.
 execContRuta :: Laberinto -> Laberinto -> IO Laberinto 
 execContRuta x y = do 
+    putStrLn "Introduza la ruta: "
     rutaUsuario <- getLine
     let listaRuta = get_ruta rutaUsuario
     let laberintoAlcanzado = recorrer x listaRuta
@@ -99,22 +102,63 @@ obtenerRutaPared x (y:ys)
     |   y=="derecha"  = obtenerRutaPared (acc_der $ convert x) ys
     |   y=="recto"  = obtenerRutaPared (acc_rec $ convert x) ys
 
+-- | Funcion que obtiene la lista de los laberintos que estan antes de encontrar una pared
+laberintosRuta :: Laberinto -> [String] -> [Laberinto]
+laberintosRuta x [] = [x]
+laberintosRuta x (y:ys)
+    |   y=="izquierda"  = [convert $ acc_izq x] ++ laberintosRuta (convert $ acc_izq x) ys 
+    |   y=="derecha"  = [convert $ acc_der x] ++ laberintosRuta (convert $ acc_der x) ys 
+    |   y=="recto"  = [convert $ acc_rec x] ++ laberintosRuta (convert $ acc_rec x) ys
+
+-- | Funcion que reconstruye el laberinto a partir de una lista de los laberintos recorridos
+reconsLab :: [Laberinto] -> Laberinto -> [String] -> Laberinto
+reconsLab [x] z [] = z
+reconsLab (x:xs) z (w:ws) = reconsLab xs (conexion x z w) ws
+
 -- | Funcion que se encarga de ejecutar la opcion reportar pared abierta 
 
 execParedAbierta :: Laberinto -> IO Laberinto 
 execParedAbierta x = do 
+    putStrLn "Introduza la ruta: "
     caminoUsuario <- getLine
     let listaRuta = get_ruta caminoUsuario
     let rutaRestante = obtenerRutaPared (Just x) listaRuta
-    let longitudRutaRecorrida = length listaRuta - length rutaRestante - 1
+    let longitudRutaRecorrida = length listaRuta - length rutaRestante
     let rutaRecorrida = take longitudRutaRecorrida listaRuta
+    let laberintosRecorridos = laberintosRuta x rutaRecorrida
+    putStrLn $ show rutaRestante
+    putStrLn $ show laberintosRecorridos
     let laberintoActual = recorrer x rutaRecorrida
     let subLaberinto = labNuevo sin_salida sin_salida (reverse rutaRestante)
-    let nuevoLaberinto = labNuevo laberintoActual subLaberinto (reverse rutaRecorrida)
+    let nuevoLaberinto = reconsLab (reverse laberintosRecorridos) subLaberinto (reverse rutaRecorrida)
+    putStrLn $ show nuevoLaberinto
     return nuevoLaberinto
+
+-- | Esta funcion se encarga de eliminar el sublaberinto que existe 
+-- | en la direccion indicada 
+eliminarSubLaberinto :: Laberinto -> String -> Laberinto
+eliminarSubLaberinto x y 
+    |   y=="izquierda"  = Trifurcacion Nothing (acc_der x) (acc_rec x) 
+    |   y=="derecha"  = Trifurcacion (acc_izq x) Nothing (acc_rec x)
+    |   y=="recto"  = Trifurcacion (acc_izq x) (acc_der x) Nothing
 
 -- | Funcion que se encarga de ejecutar la opcion de reportar un derrumbe 
 -- | en el laberinto 
+
+execDerrumbe :: Laberinto -> IO Laberinto
+execDerrumbe x = do 
+    putStrLn "Introduza la ruta: "
+    rutaUsuario <- getLine
+    let listaRuta = get_ruta rutaUsuario
+    putStrLn "Introduzca una direccion: "
+    direccion <- getLine 
+    let laberintoActual = recorrer x listaRuta
+    let sublaberinto = eliminarSubLaberinto laberintoActual direccion
+    return sublaberinto 
+
+
+
+
 
 -- menu :: Maybe Laberinto -> IO()
 menu (Just laberintoActual) = do 
