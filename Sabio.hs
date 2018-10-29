@@ -130,7 +130,6 @@ execParedAbierta x = do
     let rutaRecorrida = take (length listaRuta - length rutaRestante) listaRuta
     -- Estos son los laberintos que recorri hasta llegar a una pared 
     let laberintosRecorridos = [x]++(laberintosRuta x rutaRecorrida)
-    putStrLn $ show laberintosRecorridos
     -- Obtenemos el laberinto en el cual vamos a empezar a recorrer la nueva ruta 
     let laberintoActual = recorrer x rutaRecorrida
     -- Obtenemos el sublaberinto para tal ruta 
@@ -138,7 +137,6 @@ execParedAbierta x = do
     let sublaberinto2 = conexion (last laberintosRecorridos) sublaberinto conector
     -- Aqui conectamos el sublaberinto con el laberinto principal 
     let laberintoNuevo = reconsLab (drop 1 $ reverse laberintosRecorridos) sublaberinto2 (reverse (rutaRecorrida))
-    putStrLn $ show laberintoNuevo
     return laberintoNuevo
 
 -- | Esta funcion se encarga de eliminar el sublaberinto que existe 
@@ -161,9 +159,13 @@ execDerrumbe x = do
     putStrLn "Introduzca una direccion: "
     direccion <- getLine 
     -- Obtenemos el laberinto al cual se puede llegar por el camino provisto por el usuario
-    let laberintoActual = recorrer x listaRuta
+    let laberintosRecorridos = [x]++(laberintosRuta x listaRuta)
+    let laberintoActual = last laberintosRecorridos
+    -- Aqui creamos una nueva trifurcacion donde ya no existe un camino en la direccion que se dio
     let sublaberinto = eliminarSubLaberinto laberintoActual direccion
-    return sublaberinto 
+    -- Reconstruimos el arbol con la nueva trifurcacion 
+    let laberintoNuevo = reconsLab (drop 1 $ reverse laberintosRecorridos) sublaberinto (reverse listaRuta)
+    return laberintoNuevo
 
 
 
