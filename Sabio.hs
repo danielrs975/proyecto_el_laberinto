@@ -168,6 +168,10 @@ execDerrumbe x = do
     return laberintoNuevo
 
 
+-- | Funcion que ejecuta la opcion de reportar tesoro hallado
+execTesoroHallado :: Laberinto -> IO Laberinto 
+execTesoroHallado x = do
+    
 
 
 
@@ -181,7 +185,7 @@ menu (Just laberintoActual) = do
         Just 3 -> execParedAbierta laberintoActual
         Just 4 -> execDerrumbe laberintoActual
         -- Just 5 -> putStrLn "tesoroTomado"
-        -- Just 6 -> putStrLn "tesoroHallado"
+        Just 6 -> execTesoroHallado laberintoActual
         -- Just 7 -> putStrLn "nameLab"
         -- Just 8 -> putStrLn "hablarLab"
         Nothing -> do
